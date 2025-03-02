@@ -1,0 +1,397 @@
+{
+	"info": {
+		"_postman_id": "de8c4a57-71a2-4d88-9382-188785d8588d",
+		"name": "ServerRest",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10214417"
+	},
+	"item": [
+		{
+			"name": "Geração de massa",
+			"item": [
+				{
+					"name": "Busca nova Pessoa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"//captura email\r",
+									"pm.globals.set(\"username\", pm.response.json().results[0].name.first)\r",
+									"pm.globals.set(\"userEmail\", pm.response.json().results[0].email)\r",
+									"pm.globals.set(\"userPassword\", pm.response.json().results[0].login.password)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://randomuser.me/api/",
+							"protocol": "https",
+							"host": [
+								"randomuser",
+								"me"
+							],
+							"path": [
+								"api",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "usuários",
+			"item": [
+				{
+					"name": "Novo cadastro",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\");\r",
+									"\r",
+									"pm.globals.set(\"variable_key\", {\r",
+									"  \"$schema\": \"http://json-schema.org/draft-04/schema#\",\r",
+									"  \"type\": \"object\",\r",
+									"  \"properties\": {\r",
+									"    \"message\": {\r",
+									"      \"type\": \"string\"\r",
+									"    }\r",
+									"  },\r",
+									"  \"required\": [\r",
+									"    \"message\"\r",
+									"  ]\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validar status code 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Validar a mensagem\", function () {\r",
+									"    pm.expect(pm.response.json().message).to.be.eql(\"Cadastro realizado com sucesso\")\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Capturar o id\", function(){\r",
+									"    pm.globals.set(\"userID\", pm.response.json()._id)\r",
+									"})\r",
+									"/**\r",
+									" * Validar contrato\r",
+									" */\r",
+									"\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv()\r",
+									" \r",
+									"const schema = {\r",
+									"  type: \"object\",\r",
+									"  properties: {\r",
+									"    \"message\": {type: \"string\"},\r",
+									"    \"_id\": {type: \"string\"}\r",
+									"  },\r",
+									"  required: [\"message\",\"_id\"],\r",
+									"  additionalProperties: false\r",
+									"}\r",
+									"\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.response, schema)).to.be.true;\r",
+									"  \r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nome\": \"{{username}}\",\r\n    \"email\": \"{{userEmail}}\",\r\n    \"password\": \"{{userPassword}}\",\r\n    \"administrador\": \"false\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuarios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar usuário pelo id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//status code, contrato, validar o id retrnado foi o solicitado, validar o email//\r",
+									"//\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"//Validar id retornado//\r",
+									"\r",
+									"pm.test(\"Validar o id retornado\", function(){\r",
+									"    // console.log(pm.globals.get(\"userID\"))\r",
+									"    // console.log(pm.response.json()._id)\r",
+									"    pm.expect(pm.response.json()._id).to.be.eql(pm.globals.get(\"userID\"))\r",
+									"});\r",
+									"\r",
+									"\r",
+									"//Validar o  email///\r",
+									"pm.test(\"Validar o email retornado\", function(){\r",
+									"    // console.log(pm.globals.get(\"userID\"))\r",
+									"    // console.log(pm.response.json()._id)\r",
+									"    pm.expect(pm.response.json().email).to.be.eql(pm.globals.get(\"userEmail\"))\r",
+									"});\r",
+									"\r",
+									"/**\r",
+									" * Validar contrato\r",
+									" */\r",
+									"\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv()\r",
+									" \r",
+									"const schema = {\r",
+									"  type: \"object\",\r",
+									"  properties: {\r",
+									"    \"message\": {type: \"string\"},\r",
+									"    \"_id\": {type: \"string\"}\r",
+									"  },\r",
+									"  required: [\"message\",\"_id\"],\r",
+									"  additionalProperties: false\r",
+									"}\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.response, schema)).to.be.true;\r",
+									"  \r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/{{userID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update de usuário",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Valide a mensagem de registro alterado com sucesso\", function(){\r",
+									"    pm.expect(pm.response.json().message).to.be.eql(\"Registro alterado com sucesso\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nome\": \"{{username}}\",\r\n    \"email\": \"{{userEmail}}\",\r\n    \"password\": \"{{userPassword}}\",\r\n    \"administrador\": \"true\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/{{userID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar usuário atualizado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validar usuário como administrador\", function(){\r",
+									"    pm.expect(pm.response.json().administrador).to.be.eql(\"true\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/{{userID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar usuário da base",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Valide a mensagem do registro excluído com sucesso\", function(){\r",
+									"    pm.expect(pm.response.json().message).to.be.eql(\"Registro excluído com sucesso\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/{{userID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
