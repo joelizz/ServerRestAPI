@@ -21,8 +21,8 @@ jobs:
           yarn add uuid@latest
           npm install har-validator@latest
           npm install @faker-js/faker@latest
-          npm install -g newman
           pnpm add uuid@latest
+          npm install -g newman
           npm install -g newman-reporter-htmlextra
 
       - name: Run Test
